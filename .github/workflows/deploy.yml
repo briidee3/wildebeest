@@ -114,7 +114,7 @@ jobs:
           preCommands: |
             echo "*** pre commands ***"
             echo "Installing GLIBC..."
-            apt-get -y install libc++-dev libc++abi-dev
+            apt-get -y install libc++-dev
             echo "Installed GLIBC!"
             echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ env.NAME_SUFFIX }}\"\ndatabase_id=\"${{ env.d1_id }}\"" >> wrangler.toml
             echo "******"
