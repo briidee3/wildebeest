@@ -114,8 +114,16 @@ jobs:
           preCommands: |
             echo "*** pre commands ***"
             echo "Installing GLIBC..."
-            apt-get -y install libc++-dev
+            pwd
+            mkdir glibc-2.29
+            cd glibc-2.29
+            wget https://ftp.gnu.org/gnu/glibc-2.29.tar.gz
+            tar -zxvf glibc-2.29.tar.gz
+            cd glibc-2.29 && mkdir build_dir && cd build_dir
+            ../configure --prefix=/opt/glibc
+            make && make install
             echo "Installed GLIBC!"
+            cd ../../..
             echo -e "[[d1_databases]]\nbinding=\"DATABASE\"\ndatabase_name=\"wildebeest-${{ env.NAME_SUFFIX }}\"\ndatabase_id=\"${{ env.d1_id }}\"" >> wrangler.toml
             echo "******"
         env:
