@@ -84,12 +84,23 @@ jobs:
                   }
               }' \
               -H 'Authorization: Bearer ${{ secrets.CF_API_TOKEN }}'
-      - name: Update GLIBC version
+
+      - name: Create D1 database
         uses: cloudflare/wrangler-action@2.0.0
         with:
-          command: echo "Done updating!"
+          command: d1 create wildebeest-${{ env.NAME_SUFFIX }}
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        continue-on-error: true
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+      - name: Update GLIBC and retrieve D1 database
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          command: d1 list --json | jq -r '.[] | select(.name == "wildebeest-${{ env.NAME_SUFFIX }}") | .uuid' | awk '{print "d1_id="$1}' >> $GITHUB_ENV
           apiToken: ${{ secrets.CF_API_TOKEN }}
           preCommands: |
+            echo "*** pre commands ***"
             echo "Installing GLIBC..."
             mkdir making && cd making
             echo "\\-> Installing/updating gawk and bison..."
@@ -114,25 +125,6 @@ jobs:
             echo "Installed GLIBC!"
             cd ../../..
             export PATH=/usr/local/bin:$PATH    # This should be fine
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
-      - name: Create D1 database
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          command: d1 create wildebeest-${{ env.NAME_SUFFIX }}
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-        continue-on-error: true
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
-      - name: retrieve D1 database
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          command: d1 list --json | jq -r '.[] | select(.name == "wildebeest-${{ env.NAME_SUFFIX }}") | .uuid' | awk '{print "d1_id="$1}' >> $GITHUB_ENV
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          preCommands: |
-            echo "*** pre commands ***"
             apt-get update && apt-get -y install jq
             echo "******"
         env:
